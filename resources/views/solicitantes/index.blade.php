@@ -1,230 +1,386 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Solicitantes — CRUD simple</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:20px;}
-    h1{margin:0 0 16px;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-    .card{border:1px solid #ddd;border-radius:12px;padding:16px;flex:1;min-width:280px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-    .actions button{margin-right:6px}
-    .muted{color:#666;font-size:.9rem}
-    .error{background:#ffe8e8;color:#b00020;padding:8px 10px;border-radius:8px;margin:8px 0;display:none}
-    .ok{background:#e8fff0;color:#0a7a2a;padding:8px 10px;border-radius:8px;margin:8px 0;display:none}
-    form input,form textarea{padding:8px;border:1px solid #ccc;border-radius:8px;width:100%}
-    form label{font-size:.9rem;margin-top:10px;display:block}
-    form .row > div{flex:1}
-    .btn{padding:8px 12px;border:1px solid #ccc;border-radius:10px;background:#fafafa;cursor:pointer}
-    .btn.primary{background:#0d6efd;color:white;border-color:#0d6efd}
-    .btn.danger{background:#dc3545;color:white;border-color:#dc3545}
-    .btn.secondary{background:#6c757d;color:white;border-color:#6c757d}
-    .info-badge{background:#e3f2fd;color:#1976d2;padding:4px 8px;border-radius:4px;font-size:.8rem;display:inline-block}
-  </style>
-</head>
-<body>
-  <h1>Solicitantes — CRUD</h1>
+@extends('layouts.admin')
 
-  <div id="msg-ok" class="ok"></div>
-  <div id="msg-error" class="error"></div>
+@section('title', 'Solicitantes')
 
-  <div class="card">
-    <h3 id="form-title">Crear solicitante</h3>
-    <form id="solicitante-form">
-      <input type="hidden" id="id">
-      <div class="row">
-        <div>
-          <label>Nombre <span style="color:red">*</span></label>
-          <input id="nombre" placeholder="Nombre completo" required>
-        </div>
-        <div>
-          <label>Teléfono (opcional)</label>
-          <input id="telefono" placeholder="Número de teléfono">
+@section('page-title', 'Gestión de Solicitantes')
+
+@section('breadcrumb')
+<li class="breadcrumb-item active">Solicitantes</li>
+@endsection
+
+@section('content')
+<div class="row">
+  <!-- Formulario -->
+  <div class="col-md-12">
+    <div class="card card-success">
+      <div class="card-header">
+        <h3 class="card-title" id="form-title">
+          <i class="fas fa-user-plus"></i> Crear Solicitante
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
         </div>
       </div>
-      <div class="row">
-        <div>
-          <label>Dirección (opcional)</label>
-          <textarea id="direccion" placeholder="Dirección completa" rows="3"></textarea>
-        </div>
+      <div class="card-body">
+        <form id="solicitante-form">
+          <input type="hidden" id="id">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="nombre">
+                  <i class="fas fa-user"></i> Nombre <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="nombre" placeholder="Nombre completo" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="telefono">
+                  <i class="fas fa-phone"></i> Teléfono (opcional)
+                </label>
+                <input type="tel" class="form-control" id="telefono" placeholder="Número de teléfono">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="direccion">
+                  <i class="fas fa-map-marker-alt"></i> Dirección (opcional)
+                </label>
+                <textarea class="form-control" id="direccion" placeholder="Dirección completa" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <button type="submit" class="btn btn-success" id="btn-save">
+                <i class="fas fa-save"></i> Guardar
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-reset">
+                <i class="fas fa-undo"></i> Cancelar
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-      <div class="row" style="margin-top:12px">
-        <div>
-          <button class="btn primary" id="btn-save" type="submit">Guardar</button>
-          <button class="btn secondary" id="btn-reset" type="button">Cancelar</button>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <div class="card">
-    <div class="row" style="align-items:center;justify-content:space-between">
-      <h3 style="margin:0">Listado</h3>
-      <button class="btn" id="btn-reload">Recargar</button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Teléfono</th>
-          <th>Dirección</th>
-          <th class="muted">ID</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="muted" id="empty" style="display:none;margin-top:8px">No hay solicitantes</div>
   </div>
 
-  <script>
-    const API_BASE = `${location.origin}/api/solicitantes`;
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
+  <!-- Tabla -->
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-list"></i> Listado de Solicitantes
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" id="btn-reload" title="Recargar">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <table id="solicitantes-table" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              <th>ID</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
 
-    const msgOk = $('#msg-ok');
-    const msgError = $('#msg-error');
+@push('styles')
+<style>
+  .table th {
+    background-color: #f4f6f9;
+    border-color: #dee2e6;
+  }
+  .btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+  }
+  .card-success {
+    border-top: 3px solid #28a745;
+  }
+</style>
+@endpush
 
-    function showOk(t){ msgOk.textContent=t; msgOk.style.display='block'; setTimeout(()=>msgOk.style.display='none', 3000); }
-    function showErr(t){ msgError.textContent=t; msgError.style.display='block'; setTimeout(()=>msgError.style.display='none', 5000); }
-
-    async function loadSolicitantes(){
-      try{
-        const r = await fetch(API_BASE, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const tbody = $('#tbody');
-        tbody.innerHTML = '';
-        if(items.length === 0){ $('#empty').style.display='block'; return; }
-        $('#empty').style.display='none';
-
-        for(const s of items){
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><strong>${escapeHtml(s.nombre ?? '')}</strong></td>
-            <td>${escapeHtml(s.telefono ?? 'N/A')}</td>
-            <td>${escapeHtml(s.direccion ?? 'N/A')}</td>
-            <td class="muted" title="${s.id}">${escapeHtml(s.id ?? '')}</td>
-            <td class="actions">
-              <button class="btn" data-edit="${s.id}">Editar</button>
-              <button class="btn danger" data-del="${s.id}">Eliminar</button>
-            </td>
+@push('scripts')
+<script>
+$(document).ready(function() {
+  const API_BASE = `${location.origin}/api/solicitantes`;
+  
+  // DataTable
+  const table = $('#solicitantes-table').DataTable({
+    processing: true,
+    serverSide: false,
+    ajax: {
+      url: API_BASE,
+      type: 'GET',
+      dataSrc: function(json) {
+        // Manejar tanto arrays directos como respuestas paginadas
+        if (Array.isArray(json)) {
+          return json;
+        } else if (json.data && Array.isArray(json.data)) {
+          return json.data;
+        } else {
+          return [];
+        }
+      },
+      error: function(xhr, error, thrown) {
+        console.error('Error cargando solicitantes:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los solicitantes'
+        });
+      }
+    },
+    language: {
+      url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+    },
+    columns: [
+      { 
+        data: 'nombre', 
+        name: 'nombre',
+        render: function(data, type, row) {
+          return `<strong class="text-success">${data || ''}</strong>`;
+        }
+      },
+      { 
+        data: 'telefono', 
+        name: 'telefono',
+        render: function(data, type, row) {
+          return data || '<span class="text-muted">N/A</span>';
+        }
+      },
+      { 
+        data: 'direccion', 
+        name: 'direccion',
+        render: function(data, type, row) {
+          if (data) {
+            return data.length > 50 ? data.substring(0, 50) + '...' : data;
+          }
+          return '<span class="text-muted">N/A</span>';
+        }
+      },
+      { data: 'id', name: 'id', visible: false },
+      { 
+        data: null, 
+        orderable: false, 
+        searchable: false,
+        render: function(data, type, row) {
+          return `
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-info btn-edit" data-id="${row.id}" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-danger btn-delete" data-id="${row.id}" title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           `;
-          tbody.appendChild(tr);
         }
-      }catch(e){ showErr(e.message); }
-    }
-
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    }
-
-    async function createSolicitante(payload){
-      const r = await fetch(API_BASE, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if(r.status===422){
-        const j = await r.json();
-        throw new Error(Object.values(j.errors||{}).flat().join(' | ') || 'Validación fallida');
       }
-      if(!r.ok) throw new Error('Error al crear');
-      return r.json();
-    }
+    ],
+    order: [[0, 'asc']],
+    pageLength: 10,
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]]
+  });
 
-    async function updateSolicitante(id, payload){
-      const r = await fetch(`${API_BASE}/${id}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if(r.status===422){
-        const j = await r.json();
-        throw new Error(Object.values(j.errors||{}).flat().join(' | ') || 'Validación fallida');
-      }
-      if(!r.ok) throw new Error('Error al actualizar');
-      return r.json();
-    }
+  // Load solicitantes
+  function loadSolicitantes() {
+    table.ajax.reload();
+  }
 
-    async function deleteSolicitante(id){
-      const r = await fetch(`${API_BASE}/${id}`, { method:'DELETE', headers:{'Accept':'application/json'} });
-      if(!r.ok && r.status!==204) throw new Error('Error al eliminar');
-    }
-
-    function resetForm(){
-      $('#id').value='';
-      $('#nombre').value='';
-      $('#telefono').value='';
-      $('#direccion').value='';
-      $('#form-title').textContent='Crear solicitante';
-    }
-
-    function fillForm(s){
-      $('#id').value = s.id || '';
-      $('#nombre').value = s.nombre || '';
-      $('#telefono').value = s.telefono || '';
-      $('#direccion').value = s.direccion || '';
-      $('#form-title').textContent='Editar solicitante';
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    // Handle create / update submit
-    $('#solicitante-form').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const id = $('#id').value.trim();
-      const payload = {
-        nombre: $('#nombre').value.trim(),
-        telefono: $('#telefono').value.trim() || null,
-        direccion: $('#direccion').value.trim() || null,
-      };
-
-      try{
-        if(id){
-          await updateSolicitante(id, payload);
-          showOk('Solicitante actualizado');
-        }else{
-          await createSolicitante(payload);
-          showOk('Solicitante creado');
-        }
-        resetForm();
-        loadSolicitantes();
-      }catch(err){ showErr(err.message); }
+  // Create solicitante
+  async function createSolicitante(payload) {
+    const response = await fetch(API_BASE, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
     });
+    
+    if (response.status === 422) {
+      const errors = await response.json();
+      throw new Error(Object.values(errors.errors || {}).flat().join(' | ') || 'Validación fallida');
+    }
+    
+    if (!response.ok) throw new Error('Error al crear solicitante');
+    return response.json();
+  }
 
-    $('#btn-reset').addEventListener('click', resetForm);
-    $('#btn-reload').addEventListener('click', loadSolicitantes);
+  // Update solicitante
+  async function updateSolicitante(id, payload) {
+    const response = await fetch(`${API_BASE}/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.status === 422) {
+      const errors = await response.json();
+      throw new Error(Object.values(errors.errors || {}).flat().join(' | ') || 'Validación fallida');
+    }
+    
+    if (!response.ok) throw new Error('Error al actualizar solicitante');
+    return response.json();
+  }
 
-    // Delegate edit/delete buttons
-    document.addEventListener('click', async (e)=>{
-      const editId = e.target?.dataset?.edit;
-      const delId  = e.target?.dataset?.del;
+  // Delete solicitante
+  async function deleteSolicitante(id) {
+    const response = await fetch(`${API_BASE}/${id}`, { 
+      method: 'DELETE', 
+      headers: {'Accept': 'application/json'} 
+    });
+    
+    if (!response.ok && response.status !== 204) throw new Error('Error al eliminar solicitante');
+  }
 
-      if(editId){
-        try{
-          const r = await fetch(`${API_BASE}/${editId}`, { headers:{'Accept':'application/json'}});
-          if(!r.ok) throw new Error('No se pudo cargar el solicitante');
-          const s = await r.json();
-          fillForm(s);
-        }catch(err){ showErr(err.message); }
+  // Reset form
+  function resetForm() {
+    $('#id').val('');
+    $('#nombre').val('');
+    $('#telefono').val('');
+    $('#direccion').val('');
+    $('#form-title').html('<i class="fas fa-user-plus"></i> Crear Solicitante');
+    $('#solicitante-form')[0].reset();
+  }
+
+  // Fill form for editing
+  function fillForm(solicitante) {
+    $('#id').val(solicitante.id || '');
+    $('#nombre').val(solicitante.nombre || '');
+    $('#telefono').val(solicitante.telefono || '');
+    $('#direccion').val(solicitante.direccion || '');
+    $('#form-title').html('<i class="fas fa-user-edit"></i> Editar Solicitante');
+    
+    // Scroll to top
+    $('html, body').animate({scrollTop: 0}, 'slow');
+  }
+
+  // Form submit
+  $('#solicitante-form').submit(async function(e) {
+    e.preventDefault();
+    
+    const id = $('#id').val().trim();
+    const payload = {
+      nombre: $('#nombre').val().trim(),
+      telefono: $('#telefono').val().trim() || null,
+      direccion: $('#direccion').val().trim() || null,
+    };
+
+    try {
+      if (id) {
+        await updateSolicitante(id, payload);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Solicitante actualizado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        await createSolicitante(payload);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Solicitante creado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
+      
+      resetForm();
+      loadSolicitantes();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message
+      });
+    }
+  });
 
-      if(delId){
-        if(!confirm('¿Eliminar este solicitante?')) return;
-        try{
-          await deleteSolicitante(delId);
-          showOk('Solicitante eliminado');
+  // Reset button
+  $('#btn-reset').click(resetForm);
+
+  // Reload button
+  $('#btn-reload').click(loadSolicitantes);
+
+  // Edit button
+  $(document).on('click', '.btn-edit', async function() {
+    const id = $(this).data('id');
+    
+    try {
+      const response = await fetch(`${API_BASE}/${id}`, { 
+        headers: {'Accept': 'application/json'} 
+      });
+      
+      if (!response.ok) throw new Error('No se pudo cargar el solicitante');
+      
+      const solicitante = await response.json();
+      fillForm(solicitante);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message
+      });
+    }
+  });
+
+  // Delete button
+  $(document).on('click', '.btn-delete', function() {
+    const id = $(this).data('id');
+    
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Esta acción no se puede deshacer",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteSolicitante(id);
+          
+          Swal.fire({
+            icon: 'success',
+            title: '¡Eliminado!',
+            text: 'Solicitante eliminado correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
           loadSolicitantes();
-        }catch(err){ showErr(err.message); }
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+          });
+        }
       }
     });
-
-    // Init
-    loadSolicitantes();
-  </script>
-</body>
-</html>
+  });
+});
+</script>
+@endpush

@@ -141,6 +141,28 @@ $(document).ready(function() {
   const table = $('#usuarios-table').DataTable({
     processing: true,
     serverSide: false,
+    ajax: {
+      url: API_BASE,
+      type: 'GET',
+      dataSrc: function(json) {
+        // Manejar tanto arrays directos como respuestas paginadas
+        if (Array.isArray(json)) {
+          return json;
+        } else if (json.data && Array.isArray(json.data)) {
+          return json.data;
+        } else {
+          return [];
+        }
+      },
+      error: function(xhr, error, thrown) {
+        console.error('Error cargando usuarios:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los usuarios'
+        });
+      }
+    },
     language: {
       url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
     },
@@ -372,9 +394,6 @@ $(document).ready(function() {
       }
     });
   });
-
-  // Initial load
-  loadUsuarios();
 });
 </script>
 @endpush

@@ -1,319 +1,548 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Donaciones — CRUD simple</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:20px;}
-    h1{margin:0 0 16px;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-    .card{border:1px solid #ddd;border-radius:12px;padding:16px;flex:1;min-width:280px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-    .actions button{margin-right:6px}
-    .muted{color:#666;font-size:.9rem}
-    .error{background:#ffe8e8;color:#b00020;padding:8px 10px;border-radius:8px;margin:8px 0;display:none}
-    .ok{background:#e8fff0;color:#0a7a2a;padding:8px 10px;border-radius:8px;margin:8px 0;display:none}
-    form input,form select,form textarea{padding:8px;border:1px solid #ccc;border-radius:8px;width:100%}
-    form label{font-size:.9rem;margin-top:10px;display:block}
-    form .row > div{flex:1}
-    .btn{padding:8px 12px;border:1px solid #ccc;border-radius:10px;background:#fafafa;cursor:pointer}
-    .btn.primary{background:#0d6efd;color:white;border-color:#0d6efd}
-    .btn.danger{background:#dc3545;color:white;border-color:#dc3545}
-    .btn.secondary{background:#6c757d;color:white;border-color:#6c757d}
-    .status-ofrecida{color:#856404;background:#fff3cd;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-confirmada{color:#155724;background:#d4edda;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-entregada{color:#0c5460;background:#d1ecf1;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-cancelada{color:#721c24;background:#f8d7da;padding:2px 8px;border-radius:4px;font-size:.8rem}
-  </style>
-</head>
-<body>
-  <h1>Donaciones — CRUD</h1>
+@extends('layouts.admin')
 
-  <div id="msg-ok" class="ok"></div>
-  <div id="msg-error" class="error"></div>
+@section('title', 'Donaciones')
 
-  <div class="card">
-    <h3 id="form-title">Crear donación</h3>
-    <form id="donacion-form">
-      <input type="hidden" id="id">
-      <div class="row">
-        <div>
-          <label>Solicitud <span style="color:red">*</span></label>
-          <select id="solicitud_id" required>
-            <option value="">Seleccione una solicitud</option>
-          </select>
-        </div>
-        <div>
-          <label>Usuario (donante opcional)</label>
-          <select id="usuario_id">
-            <option value="">Sin usuario específico</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Título <span style="color:red">*</span></label>
-          <input id="titulo" placeholder="Título de la donación" required>
-        </div>
-        <div>
-          <label>Cantidad (opcional)</label>
-          <input id="cantidad" type="number" min="0" placeholder="0">
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Estado <span style="color:red">*</span></label>
-          <select id="estado" required>
-            <option value="ofrecida">Ofrecida</option>
-            <option value="confirmada">Confirmada</option>
-            <option value="entregada">Entregada</option>
-            <option value="cancelada">Cancelada</option>
-          </select>
-        </div>
-        <div>
-          <label>Notas (opcional)</label>
-          <textarea id="notas" placeholder="Notas adicionales" rows="3"></textarea>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <div>
-          <button class="btn primary" id="btn-save" type="submit">Guardar</button>
-          <button class="btn secondary" id="btn-reset" type="button">Cancelar</button>
-        </div>
-      </div>
-    </form>
-  </div>
+@section('page-title', 'Gestión de Donaciones')
 
-  <div class="card">
-    <div class="row" style="align-items:center;justify-content:space-between">
-      <h3 style="margin:0">Listado</h3>
-      <button class="btn" id="btn-reload">Recargar</button>
+@section('breadcrumb')
+<li class="breadcrumb-item active">Donaciones</li>
+@endsection
+
+@section('content')
+<div class="row">
+  <!-- Formulario -->
+  <div class="col-md-12">
+    <div class="card card-warning">
+      <div class="card-header">
+        <h3 class="card-title" id="form-title">
+          <i class="fas fa-hand-holding-heart"></i> Crear Donación
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <form id="donacion-form">
+          <input type="hidden" id="id">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="solicitud_id">
+                  <i class="fas fa-clipboard-list"></i> Solicitud <span class="text-danger">*</span>
+                </label>
+                <select class="form-control select2" id="solicitud_id" required>
+                  <option value="">Seleccione una solicitud</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="usuario_id">
+                  <i class="fas fa-user"></i> Usuario (donante opcional)
+                </label>
+                <select class="form-control select2" id="usuario_id">
+                  <option value="">Sin usuario específico</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="titulo">
+                  <i class="fas fa-tag"></i> Título <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="titulo" placeholder="Título de la donación" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="cantidad">
+                  <i class="fas fa-hashtag"></i> Cantidad (opcional)
+                </label>
+                <input type="number" class="form-control" id="cantidad" min="0" placeholder="0">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="estado">
+                  <i class="fas fa-info-circle"></i> Estado <span class="text-danger">*</span>
+                </label>
+                <select class="form-control" id="estado" required>
+                  <option value="ofrecida">Ofrecida</option>
+                  <option value="confirmada">Confirmada</option>
+                  <option value="entregada">Entregada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="notas">
+                  <i class="fas fa-sticky-note"></i> Notas (opcional)
+                </label>
+                <textarea class="form-control" id="notas" placeholder="Notas adicionales" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <button type="submit" class="btn btn-warning" id="btn-save">
+                <i class="fas fa-save"></i> Guardar
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-reset">
+                <i class="fas fa-undo"></i> Cancelar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Solicitud</th>
-          <th>Usuario</th>
-          <th>Cantidad</th>
-          <th>Estado</th>
-          <th class="muted">ID</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="muted" id="empty" style="display:none;margin-top:8px">No hay donaciones</div>
   </div>
 
-  <script>
-    const API_BASE = `${location.origin}/api/donaciones`;
-    const SOLICITUDES_API = `${location.origin}/api/solicitudes`;
-    const USUARIOS_API = `${location.origin}/api/usuarios`;
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
+  <!-- Tabla -->
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-list"></i> Listado de Donaciones
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" id="btn-reload" title="Recargar">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <table id="donaciones-table" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Solicitud</th>
+              <th>Usuario</th>
+              <th>Cantidad</th>
+              <th>Estado</th>
+              <th>ID</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
 
-    const msgOk = $('#msg-ok');
-    const msgError = $('#msg-error');
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+<style>
+  .table th {
+    background-color: #f4f6f9;
+    border-color: #dee2e6;
+  }
+  .btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+  }
+  .card-warning {
+    border-top: 3px solid #ffc107;
+  }
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .status-ofrecida { background-color: #fff3cd; color: #856404; }
+  .status-confirmada { background-color: #d1ecf1; color: #0c5460; }
+  .status-entregada { background-color: #d4edda; color: #155724; }
+  .status-cancelada { background-color: #f8d7da; color: #721c24; }
+  .tipo-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .cantidad-badge {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+</style>
+@endpush
 
-    function showOk(t){ msgOk.textContent=t; msgOk.style.display='block'; setTimeout(()=>msgOk.style.display='none', 3000); }
-    function showErr(t){ msgError.textContent=t; msgError.style.display='block'; setTimeout(()=>msgError.style.display='none', 5000); }
-
-    function getStatusClass(estado) {
-      const statusMap = {
-        'ofrecida': 'status-ofrecida',
-        'confirmada': 'status-confirmada',
-        'entregada': 'status-entregada',
-        'cancelada': 'status-cancelada'
-      };
-      return statusMap[estado] || 'status-ofrecida';
-    }
-
-    async function loadSolicitudes() {
-      try {
-        const r = await fetch(SOLICITUDES_API, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar solicitudes');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const select = $('#solicitud_id');
-        select.innerHTML = '<option value="">Seleccione una solicitud</option>';
-        
-        for(const s of items) {
-          const option = document.createElement('option');
-          option.value = s.id;
-          option.textContent = `${s.tipo} - ${s.estado} (${s.id})`;
-          select.appendChild(option);
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+  const API_BASE = `${location.origin}/api/donaciones`;
+  const SOLICITUDES_API = `${location.origin}/api/solicitudes`;
+  const USUARIOS_API = `${location.origin}/api/usuarios`;
+  
+  // Inicializar Select2
+  $('.select2').select2({
+    theme: 'bootstrap-5',
+    width: '100%'
+  });
+  
+  // DataTable
+  const table = $('#donaciones-table').DataTable({
+    processing: true,
+    serverSide: false,
+    ajax: {
+      url: API_BASE,
+      type: 'GET',
+      dataSrc: function(json) {
+        if (Array.isArray(json)) {
+          return json;
+        } else if (json.data && Array.isArray(json.data)) {
+          return json.data;
+        } else {
+          return [];
         }
-      } catch(e) { showErr('Error al cargar solicitudes: ' + e.message); }
-    }
-
-    async function loadUsuarios() {
-      try {
-        const r = await fetch(USUARIOS_API, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar usuarios');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const select = $('#usuario_id');
-        select.innerHTML = '<option value="">Sin usuario específico</option>';
-        
-        for(const u of items) {
-          const option = document.createElement('option');
-          option.value = u.id;
-          option.textContent = u.nombre;
-          select.appendChild(option);
+      },
+      error: function(xhr, error, thrown) {
+        console.error('Error cargando donaciones:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las donaciones'
+        });
+      }
+    },
+    language: {
+      url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+    },
+    columns: [
+      { 
+        data: 'titulo', 
+        name: 'titulo',
+        render: function(data, type, row) {
+          return `<strong class="text-warning">${data || ''}</strong>`;
         }
-      } catch(e) { showErr('Error al cargar usuarios: ' + e.message); }
-    }
-
-    async function loadDonaciones(){
-      try{
-        const r = await fetch(API_BASE, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const tbody = $('#tbody');
-        tbody.innerHTML = '';
-        if(items.length === 0){ $('#empty').style.display='block'; return; }
-        $('#empty').style.display='none';
-
-        for(const d of items){
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${escapeHtml(d.titulo ?? '')}</td>
-            <td>${escapeHtml(d.solicitud?.tipo ?? 'N/A')}</td>
-            <td>${escapeHtml(d.usuario?.nombre ?? 'N/A')}</td>
-            <td>${escapeHtml(d.cantidad ?? 'N/A')}</td>
-            <td><span class="${getStatusClass(d.estado)}">${escapeHtml(d.estado ?? '')}</span></td>
-            <td class="muted" title="${d.id}">${escapeHtml(d.id ?? '')}</td>
-            <td class="actions">
-              <button class="btn" data-edit="${d.id}">Editar</button>
-              <button class="btn danger" data-del="${d.id}">Eliminar</button>
-            </td>
+      },
+      { 
+        data: 'solicitud.tipo', 
+        name: 'solicitud',
+        render: function(data, type, row) {
+          return data ? `<span class="tipo-badge">${data}</span>` : '<span class="text-muted">N/A</span>';
+        }
+      },
+      { 
+        data: 'usuario.nombre', 
+        name: 'usuario',
+        render: function(data, type, row) {
+          return data || '<span class="text-muted">N/A</span>';
+        }
+      },
+      { 
+        data: 'cantidad', 
+        name: 'cantidad',
+        render: function(data, type, row) {
+          if (data !== null && data !== undefined) {
+            return `<span class="cantidad-badge">${data}</span>`;
+          }
+          return '<span class="text-muted">N/A</span>';
+        }
+      },
+      { 
+        data: 'estado', 
+        name: 'estado',
+        render: function(data, type, row) {
+          const statusClass = `status-${data || 'ofrecida'}`;
+          return `<span class="status-badge ${statusClass}">${data || ''}</span>`;
+        }
+      },
+      { data: 'id', name: 'id', visible: false },
+      { 
+        data: null, 
+        orderable: false, 
+        searchable: false,
+        render: function(data, type, row) {
+          return `
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-info btn-edit" data-id="${row.id}" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-danger btn-delete" data-id="${row.id}" title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           `;
-          tbody.appendChild(tr);
         }
-      }catch(e){ showErr(e.message); }
-    }
-
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    }
-
-    async function createDonacion(payload){
-      const r = await fetch(API_BASE, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if(r.status===422){
-        const j = await r.json();
-        throw new Error(Object.values(j.errors||{}).flat().join(' | ') || 'Validación fallida');
       }
-      if(!r.ok) throw new Error('Error al crear');
-      return r.json();
-    }
+    ],
+    order: [[0, 'asc']],
+    pageLength: 10,
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]]
+  });
 
-    async function updateDonacion(id, payload){
-      const r = await fetch(`${API_BASE}/${id}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify(payload)
+  // Load solicitudes
+  async function loadSolicitudes() {
+    try {
+      const response = await fetch(SOLICITUDES_API, { 
+        headers: { 'Accept': 'application/json' } 
       });
-      if(r.status===422){
-        const j = await r.json();
-        throw new Error(Object.values(j.errors||{}).flat().join(' | ') || 'Validación fallida');
-      }
-      if(!r.ok) throw new Error('Error al actualizar');
-      return r.json();
+      
+      if (!response.ok) throw new Error('Error al cargar solicitudes');
+      
+      const data = await response.json();
+      const items = Array.isArray(data) ? data : data.data || [];
+      
+      const select = $('#solicitud_id');
+      select.empty().append('<option value="">Seleccione una solicitud</option>');
+      
+      items.forEach(item => {
+        const optionText = `${item.tipo} - ${item.estado} (${item.solicitante?.nombre || 'N/A'})`;
+        select.append(new Option(optionText, item.id));
+      });
+      
+      select.trigger('change');
+    } catch (error) {
+      console.error('Error cargando solicitudes:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar las solicitudes'
+      });
     }
+  }
 
-    async function deleteDonacion(id){
-      const r = await fetch(`${API_BASE}/${id}`, { method:'DELETE', headers:{'Accept':'application/json'} });
-      if(!r.ok && r.status!==204) throw new Error('Error al eliminar');
+  // Load usuarios
+  async function loadUsuarios() {
+    try {
+      const response = await fetch(USUARIOS_API, { 
+        headers: { 'Accept': 'application/json' } 
+      });
+      
+      if (!response.ok) throw new Error('Error al cargar usuarios');
+      
+      const data = await response.json();
+      const items = Array.isArray(data) ? data : data.data || [];
+      
+      const select = $('#usuario_id');
+      select.empty().append('<option value="">Sin usuario específico</option>');
+      
+      items.forEach(item => {
+        select.append(new Option(item.nombre, item.id));
+      });
+      
+      select.trigger('change');
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar los usuarios'
+      });
     }
+  }
 
-    function resetForm(){
-      $('#id').value='';
-      $('#solicitud_id').value='';
-      $('#usuario_id').value='';
-      $('#titulo').value='';
-      $('#cantidad').value='';
-      $('#estado').value='ofrecida';
-      $('#notas').value='';
-      $('#form-title').textContent='Crear donación';
-    }
+  // Load donaciones
+  function loadDonaciones() {
+    table.ajax.reload();
+  }
 
-    function fillForm(d){
-      $('#id').value = d.id || '';
-      $('#solicitud_id').value = d.solicitud_id || '';
-      $('#usuario_id').value = d.usuario_id || '';
-      $('#titulo').value = d.titulo || '';
-      $('#cantidad').value = d.cantidad || '';
-      $('#estado').value = d.estado || 'ofrecida';
-      $('#notas').value = d.notas || '';
-      $('#form-title').textContent='Editar donación';
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    // Handle create / update submit
-    $('#donacion-form').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const id = $('#id').value.trim();
-      const payload = {
-        solicitud_id: $('#solicitud_id').value.trim(),
-        usuario_id: $('#usuario_id').value.trim() || null,
-        titulo: $('#titulo').value.trim(),
-        cantidad: $('#cantidad').value.trim() ? parseInt($('#cantidad').value) : null,
-        estado: $('#estado').value,
-        notas: $('#notas').value.trim() || null,
-      };
-
-      try{
-        if(id){
-          await updateDonacion(id, payload);
-          showOk('Donación actualizada');
-        }else{
-          await createDonacion(payload);
-          showOk('Donación creada');
-        }
-        resetForm();
-        loadDonaciones();
-      }catch(err){ showErr(err.message); }
+  // Create donacion
+  async function createDonacion(payload) {
+    const response = await fetch(API_BASE, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
     });
+    
+    if (response.status === 422) {
+      const errors = await response.json();
+      throw new Error(Object.values(errors.errors || {}).flat().join(' | ') || 'Validación fallida');
+    }
+    
+    if (!response.ok) throw new Error('Error al crear donación');
+    return response.json();
+  }
 
-    $('#btn-reset').addEventListener('click', resetForm);
-    $('#btn-reload').addEventListener('click', loadDonaciones);
+  // Update donacion
+  async function updateDonacion(id, payload) {
+    const response = await fetch(`${API_BASE}/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.status === 422) {
+      const errors = await response.json();
+      throw new Error(Object.values(errors.errors || {}).flat().join(' | ') || 'Validación fallida');
+    }
+    
+    if (!response.ok) throw new Error('Error al actualizar donación');
+    return response.json();
+  }
 
-    // Delegate edit/delete buttons
-    document.addEventListener('click', async (e)=>{
-      const editId = e.target?.dataset?.edit;
-      const delId  = e.target?.dataset?.del;
+  // Delete donacion
+  async function deleteDonacion(id) {
+    const response = await fetch(`${API_BASE}/${id}`, { 
+      method: 'DELETE', 
+      headers: {'Accept': 'application/json'} 
+    });
+    
+    if (!response.ok && response.status !== 204) throw new Error('Error al eliminar donación');
+  }
 
-      if(editId){
-        try{
-          const r = await fetch(`${API_BASE}/${editId}`, { headers:{'Accept':'application/json'}});
-          if(!r.ok) throw new Error('No se pudo cargar la donación');
-          const d = await r.json();
-          fillForm(d);
-        }catch(err){ showErr(err.message); }
+  // Reset form
+  function resetForm() {
+    $('#id').val('');
+    $('#solicitud_id').val('').trigger('change');
+    $('#usuario_id').val('').trigger('change');
+    $('#titulo').val('');
+    $('#cantidad').val('');
+    $('#estado').val('ofrecida');
+    $('#notas').val('');
+    $('#form-title').html('<i class="fas fa-hand-holding-heart"></i> Crear Donación');
+    $('#donacion-form')[0].reset();
+  }
+
+  // Fill form for editing
+  function fillForm(donacion) {
+    $('#id').val(donacion.id || '');
+    $('#solicitud_id').val(donacion.solicitud_id || '').trigger('change');
+    $('#usuario_id').val(donacion.usuario_id || '').trigger('change');
+    $('#titulo').val(donacion.titulo || '');
+    $('#cantidad').val(donacion.cantidad || '');
+    $('#estado').val(donacion.estado || 'ofrecida');
+    $('#notas').val(donacion.notas || '');
+    $('#form-title').html('<i class="fas fa-hand-holding-heart"></i> Editar Donación');
+    
+    // Scroll to top
+    $('html, body').animate({scrollTop: 0}, 'slow');
+  }
+
+  // Form submit
+  $('#donacion-form').submit(async function(e) {
+    e.preventDefault();
+    
+    const id = $('#id').val().trim();
+    const payload = {
+      solicitud_id: $('#solicitud_id').val().trim(),
+      usuario_id: $('#usuario_id').val().trim() || null,
+      titulo: $('#titulo').val().trim(),
+      cantidad: $('#cantidad').val().trim() ? parseInt($('#cantidad').val()) : null,
+      estado: $('#estado').val(),
+      notas: $('#notas').val().trim() || null,
+    };
+
+    try {
+      if (id) {
+        await updateDonacion(id, payload);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Donación actualizada correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        await createDonacion(payload);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Donación creada correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
+      
+      resetForm();
+      loadDonaciones();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message
+      });
+    }
+  });
 
-      if(delId){
-        if(!confirm('¿Eliminar esta donación?')) return;
-        try{
-          await deleteDonacion(delId);
-          showOk('Donación eliminada');
+  // Reset button
+  $('#btn-reset').click(resetForm);
+
+  // Reload button
+  $('#btn-reload').click(loadDonaciones);
+
+  // Edit button
+  $(document).on('click', '.btn-edit', async function() {
+    const id = $(this).data('id');
+    
+    try {
+      const response = await fetch(`${API_BASE}/${id}`, { 
+        headers: {'Accept': 'application/json'} 
+      });
+      
+      if (!response.ok) throw new Error('No se pudo cargar la donación');
+      
+      const donacion = await response.json();
+      fillForm(donacion);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message
+      });
+    }
+  });
+
+  // Delete button
+  $(document).on('click', '.btn-delete', function() {
+    const id = $(this).data('id');
+    
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Esta acción no se puede deshacer",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteDonacion(id);
+          
+          Swal.fire({
+            icon: 'success',
+            title: '¡Eliminado!',
+            text: 'Donación eliminada correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
           loadDonaciones();
-        }catch(err){ showErr(err.message); }
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+          });
+        }
       }
     });
+  });
 
-    // Init
-    loadSolicitudes();
-    loadUsuarios();
-    loadDonaciones();
-  </script>
-</body>
-</html>
+  // Initial load
+  loadSolicitudes();
+  loadUsuarios();
+});
+</script>
+@endpush

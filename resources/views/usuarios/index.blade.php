@@ -12,7 +12,7 @@
 <div class="row">
   <!-- Formulario -->
   <div class="col-md-12">
-    <div class="card card-primary">
+    <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title" id="form-title">
           <i class="fas fa-user-plus"></i> Crear Usuario
@@ -72,7 +72,7 @@
           </div>
           <div class="row">
             <div class="col-12">
-              <button type="submit" class="btn btn-primary" id="btn-save">
+              <button type="submit" class="btn btn-info" id="btn-save">
                 <i class="fas fa-save"></i> Guardar
               </button>
               <button type="button" class="btn btn-secondary" id="btn-reset">
@@ -129,6 +129,13 @@
     font-size: 0.875rem;
     border-radius: 0.2rem;
   }
+  .card-info {
+    border-top: 3px solid #17a2b8;
+  }
+  .nombre-text {
+    color: #17a2b8;
+    font-weight: 600;
+  }
 </style>
 @endpush
 
@@ -167,7 +174,13 @@ $(document).ready(function() {
       url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
     },
     columns: [
-      { data: 'nombre', name: 'nombre' },
+      { 
+        data: 'nombre', 
+        name: 'nombre',
+        render: function(data) {
+          return `<span class="nombre-text">${data || ''}</span>`;
+        }
+      },
       { data: 'email', name: 'email' },
       { data: 'ci', name: 'ci' },
       { data: 'id', name: 'id', visible: false },

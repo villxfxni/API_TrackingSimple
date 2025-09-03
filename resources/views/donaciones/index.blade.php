@@ -12,7 +12,7 @@
 <div class="row">
   <!-- Formulario -->
   <div class="col-md-12">
-    <div class="card card-warning">
+    <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title" id="form-title">
           <i class="fas fa-hand-holding-heart"></i> Crear Donación
@@ -91,7 +91,7 @@
           </div>
           <div class="row">
             <div class="col-12">
-              <button type="submit" class="btn btn-warning" id="btn-save">
+              <button type="submit" class="btn btn-info" id="btn-save">
                 <i class="fas fa-save"></i> Guardar
               </button>
               <button type="button" class="btn btn-secondary" id="btn-reset">
@@ -152,8 +152,8 @@
     font-size: 0.875rem;
     border-radius: 0.2rem;
   }
-  .card-warning {
-    border-top: 3px solid #ffc107;
+  .card-info {
+    border-top: 3px solid #17a2b8;
   }
   .status-badge {
     padding: 4px 8px;
@@ -231,7 +231,7 @@ $(document).ready(function() {
         data: 'titulo', 
         name: 'titulo',
         render: function(data, type, row) {
-          return `<strong class="text-warning">${data || ''}</strong>`;
+          return `<strong class="text-info">${data || ''}</strong>`;
         }
       },
       { 

@@ -1,349 +1,559 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Solicitudes — CRUD simple</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:20px;}
-    h1{margin:0 0 16px;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-    .card{border:1px solid #ddd;border-radius:12px;padding:16px;flex:1;min-width:280px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-    .actions button{margin-right:6px}
-    .muted{color:#666;font-size:.9rem}
-    .error{background:#ffe8e8;color:#b00020;padding:8px 10px;border-radius:8px;margin:8px 0;display:none}
-    .ok{background:#e8fff0;color:#0a7a2a;padding:8px 10px;border-radius:8px;margin:8px 0;display:none}
-    form input,form select,form textarea{padding:8px;border:1px solid #ccc;border-radius:8px;width:100%}
-    form label{font-size:.9rem;margin-top:10px;display:block}
-    form .row > div{flex:1}
-    .btn{padding:8px 12px;border:1px solid #ccc;border-radius:10px;background:#fafafa;cursor:pointer}
-    .btn.primary{background:#0d6efd;color:white;border-color:#0d6efd}
-    .btn.danger{background:#dc3545;color:white;border-color:#dc3545}
-    .btn.secondary{background:#6c757d;color:white;border-color:#6c757d}
-    .status-abierta{color:#856404;background:#fff3cd;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-en-proceso{color:#0c5460;background:#d1ecf1;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-completada{color:#155724;background:#d4edda;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-cancelada{color:#721c24;background:#f8d7da;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .status-cerrada{color:#6c757d;background:#f8f9fa;padding:2px 8px;border-radius:4px;font-size:.8rem}
-    .tipo-badge{background:#e3f2fd;color:#1976d2;padding:4px 8px;border-radius:4px;font-size:.8rem;display:inline-block}
-    .json-preview{background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:8px;font-family:monospace;font-size:.8rem;max-height:100px;overflow-y:auto}
-  </style>
-</head>
-<body>
-  <h1>Solicitudes — CRUD</h1>
+@extends('layouts.admin')
 
-  <div id="msg-ok" class="ok"></div>
-  <div id="msg-error" class="error"></div>
+@section('title', 'Solicitudes')
 
-  <div class="card">
-    <h3 id="form-title">Crear solicitud</h3>
-    <form id="solicitud-form">
-      <input type="hidden" id="id">
-      <div class="row">
-        <div>
-          <label>Solicitante <span style="color:red">*</span></label>
-          <select id="solicitante_id" required>
-            <option value="">Seleccione un solicitante</option>
-          </select>
-        </div>
-        <div>
-          <label>Creado por (opcional)</label>
-          <select id="creado_por_usuario_id">
-            <option value="">Sin usuario específico</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Tipo <span style="color:red">*</span></label>
-          <input id="tipo" placeholder="Tipo de solicitud" required>
-        </div>
-        <div>
-          <label>Estado <span style="color:red">*</span></label>
-          <select id="estado" required>
-            <option value="abierta">Abierta</option>
-            <option value="en-proceso">En Proceso</option>
-            <option value="completada">Completada</option>
-            <option value="cancelada">Cancelada</option>
-            <option value="cerrada">Cerrada</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Descripción (opcional)</label>
-          <textarea id="descripcion" placeholder="Descripción de la solicitud" rows="3"></textarea>
-        </div>
-        <div>
-          <label>Detalle JSON (opcional)</label>
-          <textarea id="detalle" placeholder='{"campo": "valor"}' rows="3"></textarea>
-          <small class="muted">Formato JSON válido</small>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <div>
-          <button class="btn primary" id="btn-save" type="submit">Guardar</button>
-          <button class="btn secondary" id="btn-reset" type="button">Cancelar</button>
-        </div>
-      </div>
-    </form>
-  </div>
+@section('page-title', 'Gestión de Solicitudes')
 
-  <div class="card">
-    <div class="row" style="align-items:center;justify-content:space-between">
-      <h3 style="margin:0">Listado</h3>
-      <button class="btn" id="btn-reload">Recargar</button>
+@section('breadcrumb')
+<li class="breadcrumb-item active">Solicitudes</li>
+@endsection
+
+@section('content')
+<div class="row">
+  <!-- Formulario -->
+  <div class="col-md-12">
+    <div class="card card-info">
+      <div class="card-header">
+        <h3 class="card-title" id="form-title">
+          <i class="fas fa-clipboard-plus"></i> Crear Solicitud
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <form id="solicitud-form">
+          <input type="hidden" id="id">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="solicitante_id">
+                  <i class="fas fa-user-tie"></i> Solicitante <span class="text-danger">*</span>
+                </label>
+                <select class="form-control select2" id="solicitante_id" required>
+                  <option value="">Seleccione un solicitante</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="creado_por_usuario_id">
+                  <i class="fas fa-user"></i> Creado por (opcional)
+                </label>
+                <select class="form-control select2" id="creado_por_usuario_id">
+                  <option value="">Sin usuario específico</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="tipo">
+                  <i class="fas fa-tag"></i> Tipo <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="tipo" placeholder="Tipo de solicitud" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="estado">
+                  <i class="fas fa-info-circle"></i> Estado <span class="text-danger">*</span>
+                </label>
+                <select class="form-control" id="estado" required>
+                  <option value="abierta">Abierta</option>
+                  <option value="en-proceso">En Proceso</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
+                  <option value="cerrada">Cerrada</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="descripcion">
+                  <i class="fas fa-align-left"></i> Descripción (opcional)
+                </label>
+                <textarea class="form-control" id="descripcion" placeholder="Descripción de la solicitud" rows="3"></textarea>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="detalle">
+                  <i class="fas fa-code"></i> Detalle JSON (opcional)
+                </label>
+                <textarea class="form-control" id="detalle" placeholder='{"campo": "valor"}' rows="3"></textarea>
+                <small class="text-muted">Formato JSON válido</small>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <button type="submit" class="btn btn-info" id="btn-save">
+                <i class="fas fa-save"></i> Guardar
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-reset">
+                <i class="fas fa-undo"></i> Cancelar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Solicitante</th>
-          <th>Estado</th>
-          <th>Creado por</th>
-          <th>Descripción</th>
-          <th class="muted">ID</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="muted" id="empty" style="display:none;margin-top:8px">No hay solicitudes</div>
   </div>
 
-  <script>
-    const API_BASE = `${location.origin}/api/solicitudes`;
-    const SOLICITANTES_API = `${location.origin}/api/solicitantes`;
-    const USUARIOS_API = `${location.origin}/api/usuarios`;
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
+  <!-- Tabla -->
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-list"></i> Listado de Solicitudes
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" id="btn-reload" title="Recargar">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <table id="solicitudes-table" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Solicitante</th>
+              <th>Estado</th>
+              <th>Creado por</th>
+              <th>Descripción</th>
+              <th>ID</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
 
-    const msgOk = $('#msg-ok');
-    const msgError = $('#msg-error');
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+<style>
+  .table th {
+    background-color: #f4f6f9;
+    border-color: #dee2e6;
+  }
+  .btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+  }
+  .card-info {
+    border-top: 3px solid #17a2b8;
+  }
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .status-abierta { background-color: #fff3cd; color: #856404; }
+  .status-en-proceso { background-color: #d1ecf1; color: #0c5460; }
+  .status-completada { background-color: #d4edda; color: #155724; }
+  .status-cancelada { background-color: #f8d7da; color: #721c24; }
+  .status-cerrada { background-color: #f8f9fa; color: #6c757d; }
+  .tipo-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+</style>
+@endpush
 
-    function showOk(t){ msgOk.textContent=t; msgOk.style.display='block'; setTimeout(()=>msgOk.style.display='none', 3000); }
-    function showErr(t){ msgError.textContent=t; msgError.style.display='block'; setTimeout(()=>msgError.style.display='none', 5000); }
-
-    function getStatusClass(estado) {
-      const statusMap = {
-        'abierta': 'status-abierta',
-        'en-proceso': 'status-en-proceso',
-        'completada': 'status-completada',
-        'cancelada': 'status-cancelada',
-        'cerrada': 'status-cerrada'
-      };
-      return statusMap[estado] || 'status-abierta';
-    }
-
-    function formatJsonPreview(detalle) {
-      if (!detalle) return 'N/A';
-      try {
-        if (typeof detalle === 'string') {
-          detalle = JSON.parse(detalle);
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+  const API_BASE = `${location.origin}/api/solicitudes`;
+  const SOLICITANTES_API = `${location.origin}/api/solicitantes`;
+  const USUARIOS_API = `${location.origin}/api/usuarios`;
+  
+  // Inicializar Select2
+  $('.select2').select2({
+    theme: 'bootstrap-5',
+    width: '100%'
+  });
+  
+  // DataTable
+  const table = $('#solicitudes-table').DataTable({
+    processing: true,
+    serverSide: false,
+    ajax: {
+      url: API_BASE,
+      type: 'GET',
+      dataSrc: function(json) {
+        if (Array.isArray(json)) {
+          return json;
+        } else if (json.data && Array.isArray(json.data)) {
+          return json.data;
+        } else {
+          return [];
         }
-        return JSON.stringify(detalle, null, 2);
-      } catch (e) {
-        return detalle;
+      },
+      error: function(xhr, error, thrown) {
+        console.error('Error cargando solicitudes:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las solicitudes'
+        });
       }
-    }
-
-    async function loadSolicitantes() {
-      try {
-        const r = await fetch(SOLICITANTES_API, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar solicitantes');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const select = $('#solicitante_id');
-        select.innerHTML = '<option value="">Seleccione un solicitante</option>';
-        
-        for(const s of items) {
-          const option = document.createElement('option');
-          option.value = s.id;
-          option.textContent = s.nombre;
-          select.appendChild(option);
+    },
+    language: {
+      url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+    },
+    columns: [
+      { 
+        data: 'tipo', 
+        name: 'tipo',
+        render: function(data, type, row) {
+          return `<span class="tipo-badge">${data || ''}</span>`;
         }
-      } catch(e) { showErr('Error al cargar solicitantes: ' + e.message); }
-    }
-
-    async function loadUsuarios() {
-      try {
-        const r = await fetch(USUARIOS_API, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar usuarios');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const select = $('#creado_por_usuario_id');
-        select.innerHTML = '<option value="">Sin usuario específico</option>';
-        
-        for(const u of items) {
-          const option = document.createElement('option');
-          option.value = u.id;
-          option.textContent = u.nombre;
-          select.appendChild(option);
+      },
+      { 
+        data: 'solicitante.nombre', 
+        name: 'solicitante',
+        render: function(data, type, row) {
+          return data ? `<strong class="text-info">${data}</strong>` : '<span class="text-muted">N/A</span>';
         }
-      } catch(e) { showErr('Error al cargar usuarios: ' + e.message); }
-    }
-
-    async function loadSolicitudes(){
-      try{
-        const r = await fetch(API_BASE, { headers: { 'Accept': 'application/json' }});
-        if(!r.ok) throw new Error('Error al cargar');
-        const data = await r.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const tbody = $('#tbody');
-        tbody.innerHTML = '';
-        if(items.length === 0){ $('#empty').style.display='block'; return; }
-        $('#empty').style.display='none';
-
-        for(const s of items){
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><span class="tipo-badge">${escapeHtml(s.tipo ?? '')}</span></td>
-            <td><strong>${escapeHtml(s.solicitante?.nombre ?? 'N/A')}</strong></td>
-            <td><span class="${getStatusClass(s.estado)}">${escapeHtml(s.estado ?? '')}</span></td>
-            <td>${escapeHtml(s.creador?.nombre ?? 'N/A')}</td>
-            <td>${escapeHtml(s.descripcion ?? 'N/A')}</td>
-            <td class="muted" title="${s.id}">${escapeHtml(s.id ?? '')}</td>
-            <td class="actions">
-              <button class="btn" data-edit="${s.id}">Editar</button>
-              <button class="btn danger" data-del="${s.id}">Eliminar</button>
-            </td>
+      },
+      { 
+        data: 'estado', 
+        name: 'estado',
+        render: function(data, type, row) {
+          const statusClass = `status-${data || 'abierta'}`;
+          return `<span class="status-badge ${statusClass}">${data || ''}</span>`;
+        }
+      },
+      { 
+        data: 'creador.nombre', 
+        name: 'creador',
+        render: function(data, type, row) {
+          return data || '<span class="text-muted">N/A</span>';
+        }
+      },
+      { 
+        data: 'descripcion', 
+        name: 'descripcion',
+        render: function(data, type, row) {
+          if (data) {
+            return data.length > 50 ? data.substring(0, 50) + '...' : data;
+          }
+          return '<span class="text-muted">N/A</span>';
+        }
+      },
+      { data: 'id', name: 'id', visible: false },
+      { 
+        data: null, 
+        orderable: false, 
+        searchable: false,
+        render: function(data, type, row) {
+          return `
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-info btn-edit" data-id="${row.id}" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-danger btn-delete" data-id="${row.id}" title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           `;
-          tbody.appendChild(tr);
         }
-      }catch(e){ showErr(e.message); }
-    }
-
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    }
-
-    async function createSolicitud(payload){
-      const r = await fetch(API_BASE, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if(r.status===422){
-        const j = await r.json();
-        throw new Error(Object.values(j.errors||{}).flat().join(' | ') || 'Validación fallida');
       }
-      if(!r.ok) throw new Error('Error al crear');
-      return r.json();
-    }
+    ],
+    order: [[0, 'asc']],
+    pageLength: 10,
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]]
+  });
 
-    async function updateSolicitud(id, payload){
-      const r = await fetch(`${API_BASE}/${id}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify(payload)
+  // Load solicitantes
+  async function loadSolicitantes() {
+    try {
+      const response = await fetch(SOLICITANTES_API, { 
+        headers: { 'Accept': 'application/json' } 
       });
-      if(r.status===422){
-        const j = await r.json();
-        throw new Error(Object.values(j.errors||{}).flat().join(' | ') || 'Validación fallida');
-      }
-      if(!r.ok) throw new Error('Error al actualizar');
-      return r.json();
-    }
-
-    async function deleteSolicitud(id){
-      const r = await fetch(`${API_BASE}/${id}`, { method:'DELETE', headers:{'Accept':'application/json'} });
-      if(!r.ok && r.status!==204) throw new Error('Error al eliminar');
-    }
-
-    function resetForm(){
-      $('#id').value='';
-      $('#solicitante_id').value='';
-      $('#creado_por_usuario_id').value='';
-      $('#tipo').value='';
-      $('#estado').value='abierta';
-      $('#descripcion').value='';
-      $('#detalle').value='';
-      $('#form-title').textContent='Crear solicitud';
-    }
-
-    function fillForm(s){
-      $('#id').value = s.id || '';
-      $('#solicitante_id').value = s.solicitante_id || '';
-      $('#creado_por_usuario_id').value = s.creado_por_usuario_id || '';
-      $('#tipo').value = s.tipo || '';
-      $('#estado').value = s.estado || 'abierta';
-      $('#descripcion').value = s.descripcion || '';
-      $('#detalle').value = s.detalle ? JSON.stringify(s.detalle, null, 2) : '';
-      $('#form-title').textContent='Editar solicitud';
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    // Handle create / update submit
-    $('#solicitud-form').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const id = $('#id').value.trim();
       
-      let detalle = null;
-      const detalleText = $('#detalle').value.trim();
-      if (detalleText) {
+      if (!response.ok) throw new Error('Error al cargar solicitantes');
+      
+      const data = await response.json();
+      const items = Array.isArray(data) ? data : data.data || [];
+      
+      const select = $('#solicitante_id');
+      select.empty().append('<option value="">Seleccione un solicitante</option>');
+      
+      items.forEach(item => {
+        select.append(new Option(item.nombre, item.id));
+      });
+      
+      select.trigger('change');
+    } catch (error) {
+      console.error('Error cargando solicitantes:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar los solicitantes'
+      });
+    }
+  }
+
+  // Load usuarios
+  async function loadUsuarios() {
+    try {
+      const response = await fetch(USUARIOS_API, { 
+        headers: { 'Accept': 'application/json' } 
+      });
+      
+      if (!response.ok) throw new Error('Error al cargar usuarios');
+      
+      const data = await response.json();
+      const items = Array.isArray(data) ? data : data.data || [];
+      
+      const select = $('#creado_por_usuario_id');
+      select.empty().append('<option value="">Sin usuario específico</option>');
+      
+      items.forEach(item => {
+        select.append(new Option(item.nombre, item.id));
+      });
+      
+      select.trigger('change');
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar los usuarios'
+      });
+    }
+  }
+
+  // Load solicitudes
+  function loadSolicitudes() {
+    table.ajax.reload();
+  }
+
+  // Create solicitud
+  async function createSolicitud(payload) {
+    const response = await fetch(API_BASE, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.status === 422) {
+      const errors = await response.json();
+      throw new Error(Object.values(errors.errors || {}).flat().join(' | ') || 'Validación fallida');
+    }
+    
+    if (!response.ok) throw new Error('Error al crear solicitud');
+    return response.json();
+  }
+
+  // Update solicitud
+  async function updateSolicitud(id, payload) {
+    const response = await fetch(`${API_BASE}/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.status === 422) {
+      const errors = await response.json();
+      throw new Error(Object.values(errors.errors || {}).flat().join(' | ') || 'Validación fallida');
+    }
+    
+    if (!response.ok) throw new Error('Error al actualizar solicitud');
+    return response.json();
+  }
+
+  // Delete solicitud
+  async function deleteSolicitud(id) {
+    const response = await fetch(`${API_BASE}/${id}`, { 
+      method: 'DELETE', 
+      headers: {'Accept': 'application/json'} 
+    });
+    
+    if (!response.ok && response.status !== 204) throw new Error('Error al eliminar solicitud');
+  }
+
+  // Reset form
+  function resetForm() {
+    $('#id').val('');
+    $('#solicitante_id').val('').trigger('change');
+    $('#creado_por_usuario_id').val('').trigger('change');
+    $('#tipo').val('');
+    $('#estado').val('abierta');
+    $('#descripcion').val('');
+    $('#detalle').val('');
+    $('#form-title').html('<i class="fas fa-clipboard-plus"></i> Crear Solicitud');
+    $('#solicitud-form')[0].reset();
+  }
+
+  // Fill form for editing
+  function fillForm(solicitud) {
+    $('#id').val(solicitud.id || '');
+    $('#solicitante_id').val(solicitud.solicitante_id || '').trigger('change');
+    $('#creado_por_usuario_id').val(solicitud.creado_por_usuario_id || '').trigger('change');
+    $('#tipo').val(solicitud.tipo || '');
+    $('#estado').val(solicitud.estado || 'abierta');
+    $('#descripcion').val(solicitud.descripcion || '');
+    $('#detalle').val(solicitud.detalle ? JSON.stringify(solicitud.detalle, null, 2) : '');
+    $('#form-title').html('<i class="fas fa-clipboard-edit"></i> Editar Solicitud');
+    
+    // Scroll to top
+    $('html, body').animate({scrollTop: 0}, 'slow');
+  }
+
+  // Form submit
+  $('#solicitud-form').submit(async function(e) {
+    e.preventDefault();
+    
+    const id = $('#id').val().trim();
+    
+    // Validar JSON del campo detalle
+    let detalle = null;
+    const detalleText = $('#detalle').val().trim();
+    if (detalleText) {
+      try {
+        detalle = JSON.parse(detalleText);
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de formato',
+          text: 'El campo detalle debe ser un JSON válido'
+        });
+        return;
+      }
+    }
+
+    const payload = {
+      solicitante_id: $('#solicitante_id').val().trim(),
+      creado_por_usuario_id: $('#creado_por_usuario_id').val().trim() || null,
+      tipo: $('#tipo').val().trim(),
+      estado: $('#estado').val(),
+      descripcion: $('#descripcion').val().trim() || null,
+      detalle: detalle,
+    };
+
+    try {
+      if (id) {
+        await updateSolicitud(id, payload);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Solicitud actualizada correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        await createSolicitud(payload);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Solicitud creada correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+      
+      resetForm();
+      loadSolicitudes();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message
+      });
+    }
+  });
+
+  // Reset button
+  $('#btn-reset').click(resetForm);
+
+  // Reload button
+  $('#btn-reload').click(loadSolicitudes);
+
+  // Edit button
+  $(document).on('click', '.btn-edit', async function() {
+    const id = $(this).data('id');
+    
+    try {
+      const response = await fetch(`${API_BASE}/${id}`, { 
+        headers: {'Accept': 'application/json'} 
+      });
+      
+      if (!response.ok) throw new Error('No se pudo cargar la solicitud');
+      
+      const solicitud = await response.json();
+      fillForm(solicitud);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message
+      });
+    }
+  });
+
+  // Delete button
+  $(document).on('click', '.btn-delete', function() {
+    const id = $(this).data('id');
+    
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Esta acción no se puede deshacer",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
         try {
-          detalle = JSON.parse(detalleText);
-        } catch (e) {
-          showErr('El campo detalle debe ser un JSON válido');
-          return;
-        }
-      }
-
-      const payload = {
-        solicitante_id: $('#solicitante_id').value.trim(),
-        creado_por_usuario_id: $('#creado_por_usuario_id').value.trim() || null,
-        tipo: $('#tipo').value.trim(),
-        estado: $('#estado').value,
-        descripcion: $('#descripcion').value.trim() || null,
-        detalle: detalle,
-      };
-
-      try{
-        if(id){
-          await updateSolicitud(id, payload);
-          showOk('Solicitud actualizada');
-        }else{
-          await createSolicitud(payload);
-          showOk('Solicitud creada');
-        }
-        resetForm();
-        loadSolicitudes();
-      }catch(err){ showErr(err.message); }
-    });
-
-    $('#btn-reset').addEventListener('click', resetForm);
-    $('#btn-reload').addEventListener('click', loadSolicitudes);
-
-    // Delegate edit/delete buttons
-    document.addEventListener('click', async (e)=>{
-      const editId = e.target?.dataset?.edit;
-      const delId  = e.target?.dataset?.del;
-
-      if(editId){
-        try{
-          const r = await fetch(`${API_BASE}/${editId}`, { headers:{'Accept':'application/json'}});
-          if(!r.ok) throw new Error('No se pudo cargar la solicitud');
-          const s = await r.json();
-          fillForm(s);
-        }catch(err){ showErr(err.message); }
-      }
-
-      if(delId){
-        if(!confirm('¿Eliminar esta solicitud?')) return;
-        try{
-          await deleteSolicitud(delId);
-          showOk('Solicitud eliminada');
+          await deleteSolicitud(id);
+          
+          Swal.fire({
+            icon: 'success',
+            title: '¡Eliminado!',
+            text: 'Solicitud eliminada correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
           loadSolicitudes();
-        }catch(err){ showErr(err.message); }
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+          });
+        }
       }
     });
+  });
 
-    // Init
-    loadSolicitantes();
-    loadUsuarios();
-    loadSolicitudes();
-  </script>
-</body>
-</html>
+  // Initial load
+  loadSolicitantes();
+  loadUsuarios();
+});
+</script>
+@endpush
